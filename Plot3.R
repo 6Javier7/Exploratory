@@ -7,7 +7,7 @@ library(data.table)
 library(ggplot2)
 library(lattice)
 
-unzip("Explory2.zip")
+unzip("exdata_data_NEI_data.zip")
 nei <- readRDS("exdata_data_NEI_data/summarySCC_PM25.rds")
 cods <- readRDS("exdata_data_NEI_data/Source_Classification_Code.rds")
 nei <- data.table(nei)

@@ -1,0 +1,78 @@
+Week 1
+
+unzip("Explory.zip")
+data <- read.csv2('/home/javier/Documentos/JAVIER/R/Packages/Exploratory/explory/household_power_consumption.txt')
+library(data.table)
+data1 <- data.table(data) 
+data3 <- data1[Date == "1/2/2007" | Date == "2/2/2007",]
+with(data, hist(as.numeric(Global_active_power), main = "Global Active Pover", xlab = "Global Active Powe (kilowatts)", col = "red"))
+date <- with(data3, strptime(Date, "%d/%m/%Y"))
+time <- with(data3, strptime(Time, "%H:%M:%S"))
+
+
+Week 4
+
+#plot 1
+
+library(purrr)
+library(tidyr)
+library(dplyr)
+library(data.table)
+library(ggplot2)
+library(lattice)
+
+unzip("Explory2.zip")
+nei <- readRDS("explory2/summarySCC_PM25.rds")
+cods <- readRDS("explory2/Source_Classification_Code.rds")
+nei <- data.table(nei)
+cods <- data.table(cods)
+n1 <- nei %>% group_by(year) %>% summarise(Emissions = mean(Emissions), .groups = "drop")
+png("plot1.png", height = 480, width = 480)
+with(n1, plot(Emissions ~ year, type = "l", xlab = "Year", ylab = "Emission of PM2.5(tons)", main = "Emissions of PM2.5 per Year"))
+with(n1, points(Emissions ~ year, col = "red"))
+dev.off()
+
+#plot 2
+
+n2 <- nei[fips == "24510",] %>% group_by(year) %>% summarise(Emissions = mean(Emissions), .groups = "drop")
+png("plot2.png", height = 480, width = 480)
+with(n2, plot(Emissions ~ year, type = "l", xlab = "Year", ylab = "Emission of PM2.5(tons)", main = "Baltimore City Emissions of PM2.5 per Year"))
+with(n2, points(Emissions ~ year, col = "red"))
+dev.off()
+
+#plot 3
+
+n3 <- nei[fips == "24510",] %>% group_by(year, type) %>% summarise(Emissions = mean(Emissions), .groups = "drop")
+png("plot3.png", height = 480, width = 480)
+ggplot(data = n3, mapping = aes(x = year, y = Emissions, col = type)) +  geom_point() +  geom_line() +
+  labs(colour = "Type", x = "Year", y = "Emission of PM2.5(tons)", title = "Baltimore City Emissions of PM2.5 per Year") +
+  theme_minimal()
+dev.off()
+
+#plot 4
+
+cods <- data.table(cods)
+coal <- unique(cods$EI.Sector)[c(grep("Coal",unique(cods$EI.Sector)))]
+coal1 <-cods[EI.Sector %in% coal,]
+coal2 <- merge(coal1, nei) %>% group_by(year) %>% summarise(Emissions = mean(Emissions), .groups = "drop")
+png("plot4.png", height = 480, width = 480)
+with(coal2, xyplot(Emissions ~ year, type = "l", xlab = "Year", ylab = "Emission of PM2.5(tons)", main = "Coal Combustion-Related Emissions of PM2.5 per Year"))
+dev.off()
+
+#plot 5
+
+motor <- unique(cods$EI.Sector)[c(grep("Mobile",unique(cods$EI.Sector)))]
+motor1 <-cods[EI.Sector %in% motor,]
+motor2 <- merge(motor1, nei) %>% filter(fips == "24510") %>% group_by(year) %>% summarise(Emissions = mean(Emissions), .groups = "drop")
+png("plot5.png", height = 480, width = 480)
+with(motor2, xyplot(Emissions ~ year, type = "l", xlab = "Year", ylab = "Emission of PM2.5(tons)", main = "Motor Emissions of PM2.5 per Year"))
+dev.off()
+
+#plot 6
+
+motor3 <- merge(motor1, nei) %>% filter(fips == "24510" | fips == "06037") %>% group_by(year, fips) %>% summarise(Emissions = mean(Emissions), .groups = "drop")
+motor3$fips <- gsub("24510", "Baltimore", motor3$fips)
+motor3$fips <- gsub("06037", "Angeles", motor3$fips)
+png("plot6.png", height = 480, width = 480)
+with(motor3, xyplot(Emissions ~ year|fips, groups = fips, type = "l", xlab = "Year", ylab = "Emission of PM2.5(tons)", main = "Motor Emissions of PM2.5 per Year"))
+dev.off()
